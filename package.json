@@ -9,7 +9,7 @@
     "build": "tsc --outfile dist/app.js src/app.ts",
     "push": "git add . && git commit && git push",
     "deploy": "git push heroku master",
-    "postinstall": "tsc"
+    "postinstall": "tsc --outfile dist/app.js src/app.ts"
   },
   "engines": {
     "node": "13.12.0"
