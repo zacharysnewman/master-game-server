@@ -1,45 +1,58 @@
 const express = require("express");
 const app = express();
 
-type Player = { name: string; ip: string; port: number | string };
-type Room = { roomName: string; roomSize: string; players: Player[] };
-type Callback = (req, res) => void;
-
-// Unused so far...
-const newRoom = (roomName: string, roomSize: string, host: Player): Room => ({
-  roomName,
-  roomSize,
-  players: [host],
-});
+type Callback = (req, res) => unknown;
 
 const appHandle = (handle: string) => (callback: Callback) =>
   app.all(handle, callback);
 
-const gameList: Callback = (req, res) => {
-  res.send({ data: "games" });
-};
-
-const joinGame: Callback = (req, res) => {
-  res.send({ data: "join" });
-};
-
-const hostGame: Callback = (req, res) => {
-  res.send({ data: "hostGame" });
-};
-
-const handleGetGames = () => appHandle("/games")(gameList);
-const handleJoinGame = () => appHandle("/join")(joinGame);
-const handleHostGame = () => appHandle("/host")(hostGame);
+const handleHeartbeat = () => appHandle("/heartbeat")(heartbeat);
 
 const listenForConnections = (port: string | number) =>
   app.listen(port, () => console.log(`App listening at ${port}`));
 
+//
+type Player = {
+  name: string;
+  ip: string;
+  port: number | string;
+  lastHeartbeat: number;
+};
+
+const PLAYER_TIMEOUT = 10000; // ms
+let players: Player[] = [];
+
+const heartbeat: Callback = (req, res) => {
+  const name = req.query.playerName;
+  const ip = req.connection.remoteAddress;
+  const port = req.connection.remotePort;
+  const now = Date.now();
+
+  const thisPlayer: Player = { name, ip, port, lastHeartbeat: now };
+
+  // Maybe update this search to only check for ip/port
+  if (players.includes(thisPlayer)) {
+    // Update player's heartbeat, etc. (and maybe name)
+  } else {
+    players.push(thisPlayer);
+  }
+
+  players = players.filter(playerFilter(now));
+
+  const playersWithoutThisPlayer = players.filter(
+    (player) => player !== thisPlayer
+  );
+
+  res.send(JSON.stringify(playersWithoutThisPlayer));
+};
+
+const playerFilter = (now: number) => (player: Player) =>
+  now - player.lastHeartbeat < PLAYER_TIMEOUT;
+
 const main = () => {
   const PORT: string | number = process.env.PORT || 3000;
 
-  handleGetGames();
-  handleJoinGame();
-  handleHostGame();
+  handleHeartbeat();
   listenForConnections(PORT);
 };
 
