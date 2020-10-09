@@ -14,8 +14,9 @@ const listenForConnections = (port: string | number) =>
 //
 type Player = {
   name: string;
-  ip: string;
-  port: number | string;
+  remote:{ ip: string,
+  port: number | string };
+  local: { ip:string, port: number|string};
   lastHeartbeat: number;
 };
 
@@ -24,11 +25,13 @@ let players: Player[] = [];
 
 const heartbeat: Callback = (req, res) => {
   const name = req.query.playerName;
-  const ip = req.connection.remoteAddress;
-  const port = req.connection.remotePort;
+  const remoteIp = req.connection.remoteAddress;
+  const remotePort = req.connection.remotePort;
+  const localIp = req.connection.localAddress;
+  const localPort = req.connection.localPort;
   const now = Date.now();
 
-  const thisPlayer: Player = { name, ip, port, lastHeartbeat: now };
+  const thisPlayer: Player = { name, remote: { ip: remoteIp, port: remotePort }, local: { ip: localIp, port: localPort }, lastHeartbeat: now };
 
   // Maybe update this search to only check for ip/port
   if (players.includes(thisPlayer)) {
