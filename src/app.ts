@@ -39,9 +39,9 @@ const heartbeat: Callback = (req, res) => {
 
   players = players.filter(playerFilter(now));
 
-  const playersWithoutThisPlayer = players.filter(
-    (player) => player !== thisPlayer
-  );
+  const playersWithoutThisPlayer = players;//players.filter(
+  //   (player) => player !== thisPlayer
+  // );
 
   res.send(JSON.stringify(playersWithoutThisPlayer));
 };
