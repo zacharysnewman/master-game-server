@@ -40,7 +40,7 @@ const heartbeat: Callback = (req, res) => {
     allPlayers.push(thisPlayer);
   }
 
-  allPlayers = allPlayers.filter(playersWithRecentHeartbeats(now));
+  // allPlayers = allPlayers.filter(playersWithRecentHeartbeats(now));
   
   res.send(JSON.stringify(allPlayers));
 };
