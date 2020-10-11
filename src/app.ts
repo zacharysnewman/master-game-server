@@ -23,27 +23,46 @@ const PLAYER_TIMEOUT = 10000; // ms
 let allPlayers: Player[] = [];
 
 const heartbeat: Callback = (req, res) => {
+
+  const playerName = req.query.playerName;
+  const playerIp = removeColons(removeFs(req.connection.remoteAddress));
+  const playerPort = req.connection.remotePort;
   const now = Date.now();
 
+  if(!playerName || !playerIp || !playerPort)
+    return;
+
   const thisPlayer: Player = { 
-    name: req.query.playerName, 
-    ip: req.connection.remoteAddress, 
-    port: req.connection.remotePort, 
+    name: playerName,
+    ip: playerIp,
+    port: playerPort, 
     lastHeartbeat: now 
   };
 
   const playerIndex = findPlayerIndex(allPlayers)(thisPlayer);
 
-  if (playerIndex) {
+  // console.log("Players before push:", allPlayers);
+
+  if (playerIndex >= 0) {
+    // console.log("modified");
     allPlayers[playerIndex] = thisPlayer;
   } else {
+    // console.log("pushed");
     allPlayers.push(thisPlayer);
   }
 
-  // allPlayers = allPlayers.filter(playersWithRecentHeartbeats(now));
+  // console.log("Players after push:", allPlayers);
+
+  allPlayers = allPlayers.filter(playersWithRecentHeartbeats(now));
+
+  // console.log("Players after heartbeat filter:", allPlayers);
   
   res.send(JSON.stringify(allPlayers));
 };
+
+const replaceAll = (searchTerm: string) => (replacement: string) => (value: string) => value.split(searchTerm).join(replacement);
+const removeColons = (value: string) => replaceAll(":")("")(value);
+const removeFs = (value: string) => replaceAll("f")("")(value);
 
 const includesPlayer = (players: Player[]) => (player: Player) => !!players.find((x) => x.ip === player.ip && x.port === player.port);
 const findPlayerIndex = (players: Player[]) => (player: Player) => players.findIndex((x) => x.ip === player.ip && x.port === player.port);
