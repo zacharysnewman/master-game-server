@@ -40,12 +40,13 @@ const playersWithRecentHeartbeats = (now: number) => (player: Player) =>
 let allPlayers: Player[] = [];
 
 const heartbeat: Callback = (req, res) => {
-
   const playerName = req.query.playerName;
   // const playerIp = /*removeColons(removeFs(*/req.connection.remoteAddress/*))*/;
   const playerIp = requestIp.getClientIp(req); 
   const playerPort = req.connection.remotePort;
   const now = Date.now();
+
+  allPlayers = allPlayers.filter(playersWithRecentHeartbeats(now));
 
   if(!playerName || !playerIp || !playerPort)
     return;
@@ -64,8 +65,6 @@ const heartbeat: Callback = (req, res) => {
   } else {
     allPlayers.push(thisPlayer);
   }
-
-  allPlayers = allPlayers.filter(playersWithRecentHeartbeats(now));
   
   res.send(JSON.stringify(allPlayers));
 };
