@@ -1,3 +1,4 @@
+const requestIp = require("request-ip");
 const express = require("express");
 const app = express();
 
@@ -41,7 +42,8 @@ let allPlayers: Player[] = [];
 const heartbeat: Callback = (req, res) => {
 
   const playerName = req.query.playerName;
-  const playerIp = removeColons(removeFs(req.connection.remoteAddress));
+  // const playerIp = /*removeColons(removeFs(*/req.connection.remoteAddress/*))*/;
+  const playerIp = requestIp.getClientIp(req); 
   const playerPort = req.connection.remotePort;
   const now = Date.now();
 
